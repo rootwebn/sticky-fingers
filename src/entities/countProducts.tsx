@@ -6,15 +6,12 @@ import { Button } from '@/shared/ui/button';
 import React from 'react';
 
 interface CountProductsProps {
-  productId: number;
+  id: number;
   count: number;
 }
 
-export const CountProducts: React.FC<CountProductsProps> = ({
-  productId,
-  count,
-}) => {
-  const productState = useAppSelector((state) => state.product.product);
+export const CountProducts: React.FC<CountProductsProps> = ({ id, count }) => {
+  const productState = useAppSelector((state) => state.product.productLocal);
   const dispatch = useAppDispatch();
 
   return (
@@ -24,9 +21,7 @@ export const CountProducts: React.FC<CountProductsProps> = ({
           dispatch(
             setQuantity({
               isNegative: true,
-              productId: productState.findIndex(
-                (product) => product.productId === productId,
-              ),
+              id: productState.findIndex((product) => product.id === id),
             }),
           )
         }
@@ -39,9 +34,7 @@ export const CountProducts: React.FC<CountProductsProps> = ({
           dispatch(
             setQuantity({
               isNegative: false,
-              productId: productState.findIndex(
-                (product) => product.productId === productId,
-              ),
+              id: productState.findIndex((product) => product.id === id),
             }),
           )
         }

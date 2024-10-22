@@ -1,5 +1,10 @@
+import { Product } from '@/shared/interfaces/Product';
 import { ProductState } from '@/shared/storage/productSlice';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+interface getProductsParams {
+  page: number;
+}
 
 export const userApi = createApi({
   reducerPath: 'userApi',
@@ -10,24 +15,42 @@ export const userApi = createApi({
     },
     credentials: 'include',
   }),
+  tagTypes: ['Products'],
   endpoints: (builder) => ({
-    getProducts: builder.query<ProductState['order'], void>({
-      query: () => `/products`,
-    }),
-    postOrder: builder.mutation<
-      ProductState['product'],
-      ProductState['product']
+    getProductsPage: builder.query<
+      ProductState['productPage'],
+      getProductsParams
     >({
+      query: ({ page }) => ({
+        url: `/products/pagination?page=${page}`,
+        method: 'GET',
+      }),
+    }),
+    getProducts: builder.query<ProductState['productResponse'], void>({
+      query: () => ({
+        url: `/products/`,
+        method: 'GET',
+      }),
+    }),
+    getOrders: builder.query<ProductState['orderInfo'], void>({
+      query: () => ({
+        url: `/orders`,
+        method: 'GET',
+      }),
+    }),
+    postOrder: builder.mutation<ProductState['order'], ProductState['order']>({
       query: (newOrder) => ({
-        url: `/products`,
+        url: `/orders`,
         method: 'POST',
         body: newOrder,
       }),
-      transformResponse: (res: ProductState['product']) => {
-        return res;
-      },
     }),
   }),
 });
 
-export const { useGetProductsQuery, usePostOrderMutation } = userApi;
+export const {
+  useGetProductsQuery,
+  usePostOrderMutation,
+  useGetOrdersQuery,
+  useGetProductsPageQuery,
+} = userApi;

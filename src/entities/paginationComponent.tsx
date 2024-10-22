@@ -1,3 +1,4 @@
+import { useGetProductsPageQuery } from '@/shared/api/storeApi';
 import {
   Pagination,
   PaginationContent,
@@ -7,108 +8,48 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/shared/ui/pagination';
-import React from 'react';
+import React, { useState } from 'react';
 
-interface PaginationItem {
-  totalPosts: number;
-  postsPerPage: number;
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
+interface PaginationComponentProps {
+  page: number;
+  handlePrevPage: () => void;
+  handleNextPage: () => void;
 }
 
-export const PaginationSection: React.FC<PaginationItem> = ({
-  totalPosts,
-  postsPerPage,
-  currentPage,
-  setCurrentPage,
+export const PaginationSection: React.FC<PaginationComponentProps> = ({
+  page,
+  handlePrevPage,
+  handleNextPage,
 }) => {
-  const pageNumbers = [];
-  for (let i = 1; i <= Math.ceil(totalPosts / postsPerPage); i++) {
-    pageNumbers.push(i);
-  }
-
-  const maxPageNum = 3; // Maximum page numbers to display at once
-  const pageNumLimit = Math.floor(maxPageNum / 2); // Current page should be in the middle if possible
-
-  let activePages = pageNumbers.slice(
-    Math.max(0, currentPage - 1 - pageNumLimit),
-    Math.min(currentPage - 1 + pageNumLimit + 1, pageNumbers.length),
-  );
-
-  const handleNextPage = () => {
-    if (currentPage < pageNumbers.length) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  // Function to render page numbers with ellipsis
-  const renderPages = () => {
-    const renderedPages = activePages.map((page, idx) => (
-      <PaginationItem
-        key={idx}
-        className={currentPage === page ? 'rounded-md' : ''}
-      >
-        <PaginationLink
-          onClick={() => setCurrentPage(page)}
-          className={'cursor-pointer'}
-        >
-          {page}
-        </PaginationLink>
-      </PaginationItem>
-    ));
-
-    // Add ellipsis at the start if necessary
-    if (activePages[0] > 1) {
-      renderedPages.unshift(
-        <PaginationEllipsis
-          key="ellipsis-start"
-          onClick={() => setCurrentPage(activePages[0] - 1)}
-        />,
-      );
-    }
-
-    // Add ellipsis at the end if necessary
-    if (activePages[activePages.length - 1] < pageNumbers.length) {
-      renderedPages.push(
-        <PaginationEllipsis
-          key="ellipsis-end"
-          onClick={() =>
-            setCurrentPage(activePages[activePages.length - 1] + 1)
-          }
-        />,
-      );
-    }
-
-    return renderedPages;
-  };
+  const { data, error, isFetching } = useGetProductsPageQuery({
+    page: page,
+  });
+  const totalPages = data?.data.totalPages ? data.data.totalPages : 0;
 
   return (
-    <div>
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              onClick={handlePrevPage}
-              className={'cursor-pointer'}
-            />
-          </PaginationItem>
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            onClick={handlePrevPage}
+            className={`cursor-pointer px-2 ${page === 1 ? 'pointer-events-none opacity-50' : ''}`}
+            aria-disabled={page === 1}
+            tabIndex={page === 1 ? -1 : undefined}
+            isActive={isFetching}
+          />
+        </PaginationItem>
 
-          {renderPages()}
+        <div>{`${page} / ${totalPages}`}</div>
 
-          <PaginationItem>
-            <PaginationNext
-              onClick={handleNextPage}
-              className={'cursor-pointer'}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
-    </div>
+        <PaginationItem>
+          <PaginationNext
+            onClick={handleNextPage}
+            aria-disabled={page === totalPages}
+            tabIndex={page === totalPages ? -1 : undefined}
+            className={`cursor-pointer px-2 ${page === totalPages ? 'pointer-events-none opacity-50' : ''}`}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   );
 };

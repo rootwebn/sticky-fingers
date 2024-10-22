@@ -1,12 +1,15 @@
 'use client';
 
-import { products } from '@/db';
+import { useGetProductsQuery } from '@/shared/api/storeApi';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
 export default function Page({ params }: { params: { id: string } }) {
+  const { data, isLoading, error } = useGetProductsQuery();
+  const products = data?.data ? data.data : [];
+
   const router = useRouter();
-  const product = products.find((p) => p.productHref === params.id);
+  const product = products.find((p) => p.href === params.id);
 
   if (!product) {
     router.push('/404');
@@ -23,7 +26,7 @@ export default function Page({ params }: { params: { id: string } }) {
         {/*  height={product.productImages.productImagePage.productImageHeight}*/}
         {/*/>*/}
       </div>
-      <div>{product.productName}</div>
+      <div>{product.name}</div>
     </div>
   );
 }

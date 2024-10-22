@@ -1,6 +1,6 @@
-import { SearchingInput } from '@/entities/searchingInput';
 import { ThemeSwitcher } from '@/entities/themeSwitcher';
 import { NavMenu } from '@/widgets/navMenu/navMenu';
+import { SearchingInput } from '@/widgets/searchCommand/searchingInput';
 import { Store } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
@@ -9,7 +9,7 @@ const Header = () => {
   return (
     <div
       className={
-        'flex flex-row bg-space text-xl tracking-wide border-altSpace border-b-2 sticky top-0 z-10'
+        'md:flex md:flex-row bg-space text-xl tracking-wide border-altSpace border-b-2 sticky top-0 z-10 hidden'
       }
     >
       <div
@@ -26,10 +26,12 @@ const Header = () => {
         </div>
       </div>
       <div
-        className={'flex flex-row justify-between max-h-16 bg-space flex-grow'}
+        className={
+          'flex flex-row justify-between items-center max-h-16 bg-space flex-grow md:pl-8'
+        }
       >
         <SearchingInput />
-        <NavMenu />
+        <NavMenu isMobile={false} />
       </div>
     </div>
   );

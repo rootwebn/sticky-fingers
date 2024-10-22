@@ -4,7 +4,7 @@ import {
   ButtonComponent,
   ButtonComponentCart,
 } from '@/entities/buttonComponent';
-import { ProductCardInterface } from '@/shared/interfaces/productCard';
+import { Product } from '@/shared/interfaces/Product';
 import { useAppDispatch, useAppSelector } from '@/shared/storage/hooks';
 import { setProduct } from '@/shared/storage/productSlice';
 import {
@@ -20,15 +20,15 @@ import { ShoppingBasket } from 'lucide-react';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 
-export const ProductCard: React.FC<ProductCardInterface> = ({
-  productId,
-  productName,
-  productHref,
-  productPrice,
-  productQuantity,
-  productDescription,
+export const ProductCard: React.FC<Product> = ({
+  id,
+  name,
+  href,
+  price,
+  quantity,
+  description,
 }) => {
-  const state = useAppSelector((state) => state.product.product);
+  const state = useAppSelector((state) => state.product.productLocal);
   const dispatch = useAppDispatch();
   const [isClient, setIsClient] = useState<boolean>(false);
 
@@ -37,30 +37,27 @@ export const ProductCard: React.FC<ProductCardInterface> = ({
   }, []);
 
   const productData = {
-    productId: productId,
-    productName: productName,
-    productPrice: productPrice,
-    productQuantity: productQuantity,
-    productHref: productHref,
-    productDescription: productDescription,
+    id: id,
+    name: name,
+    price: price,
+    quantity: quantity,
+    href: href,
+    description: description,
   };
 
   const isProductInCart = (productId: number) => {
-    return state.some((item) => item.productId === productId);
+    return state.some((item) => item.id === productId);
   };
 
   return (
-    <Card className={'max-w-[280px] h-full flex flex-col'}>
+    <Card className={'md:max-w-[280px] h-full flex flex-col'}>
       <CardHeader className={'text-xl'}>
         <CardTitle>
-          <Link
-            href={`/store/${productHref}`}
-            className={'hover:text-blue-400'}
-          >
-            {productName}
+          <Link href={`/store/${href}`} className={'hover:text-blue-400'}>
+            {name}
           </Link>
         </CardTitle>
-        <CardDescription>{productDescription}</CardDescription>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className={'flex-grow flex flex-col justify-around'}>
         {/*<Image*/}
@@ -73,10 +70,10 @@ export const ProductCard: React.FC<ProductCardInterface> = ({
       <CardFooter
         className={'mt-auto flex flex-row justify-between items-center'}
       >
-        <div className={''}>{productPrice + '$'}</div>
+        <div className={''}>{price + '$'}</div>
         {isClient ? (
           <>
-            {isProductInCart(productId) ? (
+            {isProductInCart(id) ? (
               <ButtonComponent
                 buttonText={'To Cart'}
                 buttonIcon={<ShoppingBasket />}
@@ -86,7 +83,7 @@ export const ProductCard: React.FC<ProductCardInterface> = ({
               <ButtonComponentCart
                 buttonText={'Add To Cart'}
                 buttonIcon={<ShoppingBasket />}
-                buttonClass={'text-xl'}
+                buttonClass={'text-xl cursor-pointer'}
                 buttonOnClickFunction={() =>
                   dispatch(setProduct({ productData }))
                 }

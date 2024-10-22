@@ -1,8 +1,7 @@
+import { authApi } from '@/shared/api/authApi';
 import { userApi } from '@/shared/api/storeApi';
-import productReducer, { setOrder } from '@/shared/storage/productSlice';
+import productReducer from '@/shared/storage/productSlice';
 import { configureStore } from '@reduxjs/toolkit';
-import { Middleware } from '@reduxjs/toolkit';
-import { thunk } from 'redux-thunk';
 
 // const orderMiddleware: Middleware = (storeAPI) => (next) => (action) => {
 //   if (userApi.endpoints.postOrder.matchFulfilled(action)) {
@@ -20,10 +19,11 @@ export const makeStore = () => {
     reducer: {
       product: productReducer,
       [userApi.reducerPath]: userApi.reducer,
+      [authApi.reducerPath]: authApi.reducer,
     },
     devTools: process.env.NODE_ENV !== 'production',
     middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(userApi.middleware),
+      getDefaultMiddleware().concat(userApi.middleware, authApi.middleware),
   });
 };
 

@@ -1,5 +1,4 @@
 import { Button } from '@/shared/ui/button';
-import { is } from '@babel/types';
 import Link from 'next/link';
 import React, { ReactElement } from 'react';
 
@@ -29,7 +28,7 @@ export const ButtonComponent: React.FC<ButtonInterface> = ({
     <Button
       asChild
       variant={'outline'}
-      className={`dark:bg-darkSpace bg-space text-white hover:text-lightSpace max-w-52 flex items-center justify-start ${buttonClass} `}
+      className={`dark:bg-darkSpace bg-space text-white hover:text-lightSpace md:max-w-52 flex items-center justify-start ${buttonClass} `}
     >
       <Link href={buttonHref} className={`flex flex-row gap-1.5 text-xl`}>
         <div>{buttonIcon}</div>
@@ -50,7 +49,7 @@ export const ButtonComponentCart: React.FC<ButtonInterfaceCart> = ({
     <Button
       asChild
       variant={'outline'}
-      className={`dark:bg-darkSpace bg-space text-white hover:text-lightSpace flex items-center justify-start max-w-52 p-1 ${buttonClass}`}
+      className={`flex dark:bg-darkSpace bg-space text-white hover:text-lightSpace items-center justify-start max-w-52 p-1 ${buttonClass}`}
       onClick={buttonOnClickFunction}
     >
       <div

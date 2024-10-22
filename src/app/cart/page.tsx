@@ -1,6 +1,6 @@
 'use client';
 
-import { CartCard } from '@/entities/cartCard';
+import { CartCard } from '@/widgets/cartCard';
 
 const CartPage = () => {
   return <CartCard />;

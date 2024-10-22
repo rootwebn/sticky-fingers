@@ -1,43 +1,37 @@
 'use client';
 
-import {
-  ButtonComponent,
-  ButtonComponentCart,
-} from '@/entities/buttonComponent';
-import { ProductCardInterface } from '@/shared/interfaces/productCard';
+import { Product } from '@/shared/interfaces/Product';
 import { useAppDispatch, useAppSelector } from '@/shared/storage/hooks';
-import { setProduct } from '@/shared/storage/productSlice';
 import { CommandItem } from '@/shared/ui/command';
-import { ShoppingBasket } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
-export const SearchProductCard: React.FC<ProductCardInterface> = ({
-  productId,
-  productQuantity,
-  productHref,
-  productDescription,
-  productName,
-  productPrice,
+export const SearchProductCard: React.FC<Product> = ({
+  id,
+  quantity,
+  href,
+  description,
+  name,
+  price,
 }) => {
-  const state = useAppSelector((state) => state.product.product);
+  const state = useAppSelector((state) => state.product.productLocal);
   const dispatch = useAppDispatch();
 
   const isProductInCart = (productId: number) => {
-    return state.some((item) => item.productId === productId);
+    return state.some((item) => item.id === productId);
   };
 
-  const productData = {
-    productId: productId,
-    productName: productName,
-    productPrice: productPrice,
-    productQuantity: productQuantity,
-    productHref: productHref,
-    productDescription: productDescription,
-  };
+  // const productData = {
+  //   productId: productId,
+  //   productName: productName,
+  //   productPrice: productPrice,
+  //   productQuantity: productQuantity,
+  //   productHref: productHref,
+  //   productDescription: productDescription,
+  // };
 
   return (
-    <CommandItem key={productId}>
+    <CommandItem key={id}>
       {/*<Image*/}
       {/*  src={productImages.productImageStore.productImageUrl}*/}
       {/*  alt={productImages.productImageStore.productImageAlt}*/}
@@ -46,15 +40,13 @@ export const SearchProductCard: React.FC<ProductCardInterface> = ({
       {/*/>*/}
       <div className={'ml-4 min-w-80'}>
         <Link
-          href={`/store/${productHref}`}
+          href={`/store/${href}`}
           className={'hover:text-blue-400 text-white text-base'}
         >
-          {productName}
+          {name}
         </Link>
         <div className={'flex flex-row flex-grow gap-1.5'}>
-          <div className={'mr-6 mt-auto text-xl text-white'}>
-            {productPrice + '$'}
-          </div>
+          <div className={'mr-6 mt-auto text-xl text-white'}>{price + '$'}</div>
           {/*{isProductInCart(productId) ? (*/}
           {/*  <ButtonComponent*/}
           {/*    buttonText={'To Cart'}*/}

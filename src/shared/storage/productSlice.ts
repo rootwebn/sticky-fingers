@@ -1,37 +1,79 @@
-import { ProductCardInterface } from '@/shared/interfaces/productCard';
-import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { toast } from 'sonner';
+import { number } from 'zod';
 
 const orderStatus = [
-  'unconfirmed',
+  'pending',
   'confirmed',
-  'in process',
-  'delivering',
+  'canceled',
+  'shipped',
   'delivered',
 ] as const;
 
+interface Product {
+  id: number;
+  name: string;
+  href: string;
+  price: number;
+  quantity: number;
+  description: string;
+}
+
 export interface ProductState {
   order: {
-    orderId: string;
-    orderTimeCreated: string;
-    orderStatus: (typeof orderStatus)[number];
-    product: {
-      productId: number;
-      productName: string;
-      productHref: string;
-      productPrice: number;
-      productQuantity: number;
-      productDescription?: string;
+    products: {
+      id: number;
     }[];
   };
-  product: {
-    productId: number;
-    productName: string;
-    productHref: string;
-    productPrice: number;
-    productQuantity: number;
-    productDescription?: string;
+  orderInfo: {
+    data: {
+      timeCreated: string;
+      status: (typeof orderStatus)[number];
+      orderProducts: {
+        quantity: number;
+        product: {
+          id: number;
+          name: string;
+          price: number;
+          description: string;
+        };
+      }[];
+    }[];
+  };
+  productResponse: {
+    data: {
+      id: number;
+      name: string;
+      href: string;
+      price: number;
+      quantity: number;
+      description: string;
+    }[];
+  };
+  productLocal: {
+    id: number;
+    name: string;
+    href: string;
+    price: number;
+    quantity: number;
+    description: string;
   }[];
+  productPage: {
+    data: {
+      products: {
+        id: number;
+        name: string;
+        href: string;
+        price: number;
+        quantity: number;
+        description: string;
+      }[];
+      total: number;
+      page: string;
+      limit: number;
+      totalPages: number;
+    };
+  };
 }
 
 let cartFromLocalStorage: string | null = null;
@@ -42,18 +84,30 @@ if (typeof window !== 'undefined') {
 
 const storedCart = cartFromLocalStorage
   ? JSON.parse(cartFromLocalStorage).filter(
-      (item: ProductCardInterface | null) => item !== null,
+      (item: Product | null) => item !== null,
     )
   : [];
 
 const initialState: ProductState = {
   order: {
-    orderId: '',
-    orderTimeCreated: '',
-    orderStatus: 'unconfirmed',
-    product: [],
+    products: [],
   },
-  product: storedCart,
+  orderInfo: {
+    data: [],
+  },
+  productPage: {
+    data: {
+      products: [],
+      total: 0,
+      page: '',
+      limit: 16,
+      totalPages: 0,
+    },
+  },
+  productResponse: {
+    data: [],
+  },
+  productLocal: storedCart,
 };
 
 export const productSlice = createSlice({
@@ -63,16 +117,16 @@ export const productSlice = createSlice({
     setQuantity: (
       state,
       {
-        payload: { isNegative, productId },
-      }: PayloadAction<{ isNegative: boolean; productId: number }>,
+        payload: { isNegative, id },
+      }: PayloadAction<{ isNegative: boolean; id: number }>,
     ) => {
-      if (isNegative && state.product[productId].productQuantity > 1) {
-        state.product[productId].productQuantity -= 1;
-        localStorage.setItem('cart', JSON.stringify(state.product));
-      } else if (!isNegative && state.product[productId].productQuantity < 5) {
-        state.product[productId].productQuantity += 1;
-        localStorage.setItem('cart', JSON.stringify(state.product));
-      } else if (state.product[productId].productQuantity >= 5) {
+      if (isNegative && state.productLocal[id].quantity > 1) {
+        state.productLocal[id].quantity -= 1;
+        localStorage.setItem('cart', JSON.stringify(state.productLocal));
+      } else if (!isNegative && state.productLocal[id].quantity < 5) {
+        state.productLocal[id].quantity += 1;
+        localStorage.setItem('cart', JSON.stringify(state.productLocal));
+      } else if (state.productLocal[id].quantity >= 5) {
         toast.error('you cant have more than 5 products');
       } else {
         toast.error('you cant have less than 1 products');
@@ -80,81 +134,51 @@ export const productSlice = createSlice({
     },
     setProduct: (
       state,
-      {
-        payload: { productData },
-      }: PayloadAction<{ productData: ProductCardInterface }>,
+      { payload: { productData } }: PayloadAction<{ productData: Product }>,
     ) => {
       let isDuplicate = true;
       while (isDuplicate) {
         isDuplicate = false;
-        for (let i = 0; i < state.product.length; i++) {
-          if (
-            productData &&
-            state.product[i].productId === productData.productId
-          ) {
-            productData.productId += 1;
+        for (let i = 0; i < state.productLocal.length; i++) {
+          if (productData && state.productLocal[i].id === productData.id) {
+            productData.id += 1;
             isDuplicate = true;
             break;
           }
         }
       }
 
-      state.product.push(productData);
+      state.productLocal.push(productData);
       if (typeof window !== 'undefined') {
-        localStorage.setItem('cart', JSON.stringify(state.product));
+        localStorage.setItem('cart', JSON.stringify(state.productLocal));
       }
 
-      toast.success(
-        `Product added successfully. Data: ProductTime: ${state.product.length}`,
-        { duration: 2000 },
-      );
+      toast.success(`Product added successfully.`, { duration: 2000 });
     },
     deleteProduct: (
       state,
-      { payload: { productId } }: PayloadAction<{ productId: number }>,
+      { payload: { id } }: PayloadAction<{ id: number }>,
     ) => {
-      for (let i = 0; i < state.product.length; i++) {
-        if (state.product[i].productId === productId) {
-          state.product.splice(i, 1);
+      for (let i = 0; i < state.productLocal.length; i++) {
+        if (state.productLocal[i].id === id) {
+          state.productLocal.splice(i, 1);
         }
       }
       if (typeof window !== 'undefined') {
-        localStorage.setItem('cart', JSON.stringify(state.product));
+        localStorage.setItem('cart', JSON.stringify(state.productLocal));
       }
     },
     setInitialState: (state) => {
-      state.product = [];
+      state.productLocal = [];
       if (typeof window !== 'undefined') {
-        localStorage.setItem('cart', JSON.stringify(state.product));
+        localStorage.setItem('cart', JSON.stringify(state.productLocal));
       }
     },
-    setOrder: (
-      state,
-      {
-        payload: { cartData },
-      }: PayloadAction<{ cartData: ProductState['order'] }>,
-    ) => {
-      state.order = {
-        ...cartData,
-        product: state.product,
-      };
-    },
-    //   setOrder: (
-    //     state,
-    //     action: PayloadAction<{ cartData: ProductState['order'] }>,
-    //   ) => {
-    //     state.order = action.payload.cartData;
-    //   },
   },
   extraReducers: () => {},
 });
 
-export const {
-  setOrder,
-  setInitialState,
-  setQuantity,
-  setProduct,
-  deleteProduct,
-} = productSlice.actions;
+export const { setInitialState, setQuantity, setProduct, deleteProduct } =
+  productSlice.actions;
 
 export default productSlice.reducer;
